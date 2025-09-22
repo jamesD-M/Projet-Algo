@@ -1,0 +1,66 @@
+// Classe : Piece
+// Représente un pion/dame sur le plateau
+
+CLASSE Piece
+    // le joueur propriétaire de la pièce ("R" ou "B")
+    PROPRIÉTÉ joueur
+    // indique si la pièce est promue en dame (vrai/faux)
+    PROPRIÉTÉ estDame
+
+    FONCTION constructeur(joueur, estDame = faux)
+        METTRE this.joueur = joueur
+        METTRE this.estDame = estDame
+    FIN FONCTION
+
+    FONCTION affichage()
+        SI estDame est vrai
+            RETOURNER joueur en MAJUSCULE
+            // Exemple : "R" = dame rouge, "B" = dame noire
+        SINON
+            RETOURNER joueur en minuscule
+        FIN SI
+    FIN FONCTION
+FIN CLASSE
+
+// Classe : Plateau
+// Représente le damier avec les pièces
+
+CLASSE Plateau
+    // tableau 2D contenant des cases
+    PROPRIÉTÉ grille
+    // dimension du plateau
+    PROPRIÉTÉ taille = 8
+
+    FONCTION constructeur()
+        INITIALISER grille comme tableau vide
+        APPELER initialiser()
+    FIN FONCTION
+
+    FONCTION initialiser()
+        // Créer un plateau
+        POUR chaque ligne i de 0 à taille-1
+            grille[i] = tableau vide
+            POUR chaque colonne j de 0 à taille-1
+                grille[i][j] = vide
+            FIN POUR
+        FIN POUR
+
+        // Placement des pièces noires
+        POUR chaque ligne i de 0 à 2
+            POUR chaque colonne j de 0 à taille-1
+                SI (i + j) est impair
+                    grille[i][j] = nouvelle Piece("B")
+                FIN SI
+            FIN POUR
+        FIN POUR
+
+        // Placement des pièces rouge
+        POUR chaque ligne i de (taille-3) à (taille-1)
+            POUR chaque colonne j de 0 à taille-1
+                SI (i + j) est impair
+                    grille[i][j] = nouvelle Piece("R")
+                FIN SI
+            FIN POUR
+        FIN POUR
+    FIN FONCTION
+FIN CLASSE
