@@ -1,0 +1,22 @@
+# Node modules (never commit these)
+node_modules/
+
+# Build output
+dist/
+build/
+
+# TypeScript compiled JS
+*.js
+*.js.map
+
+# JSON files
+*.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db

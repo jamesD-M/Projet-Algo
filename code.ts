@@ -1,4 +1,5 @@
 // Projet: Création du jeu de Dames
+import * as readlineSync from 'readline-sync';
 
 // CLASSE : Pièce
 export class Piece {
@@ -324,3 +325,107 @@ export class BaseRegles {
         return true;
     }
 }
+
+export class Victoire {
+    private plateau: Plateau;
+
+    constructor(plateau: Plateau) {
+        this.plateau = plateau;
+    }
+
+    // Vérifier si un joueur n’a plus de pièces
+    private sansPieces(joueur: string): boolean {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const piece = this.plateau.getPiece(i, j);
+                if (piece && piece.joueur === joueur) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Vérifier si un joueur n’a plus de mouvements possibles
+    private sansMouvement(joueur: string): boolean {
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                const piece = this.plateau.getPiece(x, y);
+                if (piece && piece.joueur === joueur) {
+                    // tester les 4 diagonales
+                    const directions = [
+                        { dx: 1, dy: 1 },
+                        { dx: 1, dy: -1 },
+                        { dx: -1, dy: 1 },
+                        { dx: -1, dy: -1 }
+                    ];
+                    for (const dir of directions) {
+                        const nx = x + dir.dx;
+                        const ny = y + dir.dy;
+                        if (this.plateau.estValide(nx, ny) && this.plateau.getPiece(nx, ny) === null) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true; // aucun mouvement possible
+    }
+
+    // Vérifier si la partie est gagnée
+    victoireCheck(): string | null {
+        const rougePerd = this.sansPieces("R") || this.sansMouvement("R");
+        const noirPerd = this.sansPieces("N") || this.sansMouvement("N");
+
+        if (rougePerd && noirPerd) {
+            return "Match nul!";
+        }
+        if (rougePerd) {
+            return "Victoire du joueur Noir!";
+        }
+        if (noirPerd) {
+            return "Victoire du joueur Rouge!";
+        }
+        return null;
+    }
+}
+
+function lancerPartie() {
+    const jeu = new BaseRegles();
+    const victoire = new Victoire(jeu.getPlateau());
+    // Début de la partie
+    let debutPartie = true;
+
+    while (debutPartie) {
+        console.clear?.();
+        console.log(`Joueur actuel : ${jeu.getJoueurCourant()}`);
+        jeu.afficherPiece();
+
+        let coupUtilise = false;
+
+        while (!coupUtilise) {
+            const x1 = Number(readlineSync.question("Entrez la ligne de la pièce à déplacer (0-7) : "));
+            const y1 = Number(readlineSync.question("Entrez la colonne de la pièce à déplacer (0-7) : "));
+            const x2 = Number(readlineSync.question("Entrez la ligne de destination (0-7) : "));
+            const y2 = Number(readlineSync.question("Entrez la colonne de destination (0-7) : "));
+
+            // Vérifier que la pièce appartient au joueur courant
+            if (!jeu.propriete(x1, y1)) {
+                continue;
+            }
+
+            // lancerCoup renvoie true si le coup est valide
+            coupUtilise = jeu.lancerCoup(x1, y1, x2, y2);
+        }
+
+        const resultat = victoire.victoireCheck();
+        if (resultat !== null) {
+            console.clear?.();
+            jeu.afficherPiece();
+            console.log(resultat);
+            debutPartie = false;
+        }
+    }
+}
+
+lancerPartie();
