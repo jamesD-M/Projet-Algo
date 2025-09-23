@@ -1,7 +1,8 @@
 // Projet: Création du jeu de Dames
-// 1. Création de classe: pièces
+
+// CLASSE : Pièce
 export class Piece {
-    joueur: string; // "R" (rouge) ou "B" (bleu/noir)
+    joueur: string; // "R" (rouge) ou "N" (noir)
     estDame: boolean;
 
     constructor(joueur: string, estDame: boolean = false) {
@@ -12,11 +13,13 @@ export class Piece {
     // Obtenir une représentation textuelle
     affichage(): string {
         if (this.estDame) {
-            return this.joueur.toUpperCase(); // R ou B
+            return this.joueur.toUpperCase(); // R ou N (dame)
+        } else {
+            return this.joueur.toLowerCase(); // r ou n (pion)
         }
-        return this.joueur.toLowerCase(); // r ou b
     }
 }
+
 // CLASSE : Plateau
 export class Plateau {
     private grille: (Piece | null)[][];
@@ -63,7 +66,11 @@ export class Plateau {
             let ligne = i + " ";
             for (let j = 0; j < this.taille; j++) {
                 const casePlateau = this.grille[i][j];
-                ligne += (casePlateau ? casePlateau.affichage() : ".") + " ";
+                if (casePlateau) {
+                    ligne += casePlateau.affichage() + " ";
+                } else {
+                    ligne += ". ";
+                }
             }
             console.log(ligne);
         }
@@ -76,8 +83,11 @@ export class Plateau {
 
     // Obtenir une pièce
     getPiece(x: number, y: number): Piece | null {
-        if (!this.estValide(x, y)) return null;
-        return this.grille[x][y];
+        if (!this.estValide(x, y)) {
+            return null;
+        } else {
+            return this.grille[x][y];
+        }
     }
 
     // Déplacer une pièce
@@ -86,7 +96,9 @@ export class Plateau {
             return false;
         }
         const piece = this.grille[x1][y1];
-        if (!piece) return false;
+        if (!piece) {
+            return false;
+        }
 
         this.grille[x2][y2] = piece;
         this.grille[x1][y1] = null;
@@ -99,7 +111,7 @@ export class Plateau {
         return true;
     }
 
-    // Supprime une pièce à la position donnée
+    // Supprimer une pièce à la position donnée
     supprimerPiece(x: number, y: number): void {
         if (this.estValide(x, y)) {
             this.grille[x][y] = null;
@@ -107,20 +119,24 @@ export class Plateau {
     }
 }
 
+// CLASSE : Règles de base
 export class BaseRegles {
     private plateau: Plateau;
     private joueurCourant: string;
 
     constructor() {
-        // lance le plateau et commence avec le jouer rouge
+        // Initialiser le plateau et commence avec le joueur rouge
         this.plateau = new Plateau();
-        // le rouge commence
         this.joueurCourant = "R";
     }
     
-    // Retourne la valeure absolue d'un nombre
-    private absolute(x:number):number{
-        return x >= 0 ? x : -x;
+    // Retourner la valeur absolue d'un nombre
+    private absolute(x: number): number {
+        if (x >= 0) {
+            return x;
+        } else {
+            return -x;
+        }
     }
 
     // Afficher le plateau avec le joueur courant
@@ -129,59 +145,83 @@ export class BaseRegles {
         this.plateau.afficher();
     }
 
-    // Vérifie que la pièce appartient au joueur courant
+    // Vérifier que la pièce appartient au joueur courant
     private propriete(x: number, y: number): boolean {
         const piece = this.plateau.getPiece(x, y);
-        return piece !== null && piece.joueur === this.joueurCourant;
+        if (piece !== null && piece.joueur === this.joueurCourant) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    // Vérifie que la case est vide
+    // Vérifier que la case est vide
     private caseVide(x: number, y: number): boolean {
-        return this.plateau.estValide(x, y) && this.plateau.getPiece(x, y) === null;
+        if (this.plateau.estValide(x, y) && this.plateau.getPiece(x, y) === null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    // Vérifie un mouvement diagonal
+    // Vérifier un mouvement diagonal simple
     private diagonalSimple(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
         const diagonalx = x2 - x1;
         const diagonaly = y2 - y1;
 
-        // Comme math(abs) n'est pas possible... cette ligne est donc la pour s'assurer que le déplacement change uniquement que d'une case
-        if (this.absolute(diagonalx) !== 1 || this.absolute(diagonaly) !== 1) return false;
+        // Déplacement doit être exactement d'une case en diagonale
+        if (this.absolute(diagonalx) !== 1 || this.absolute(diagonaly) !== 1) {
+            return false;
+        }
 
+        // Vérifie la direction du pion si ce n’est pas une dame
         if (!piece.estDame) {
-            if (piece.joueur === "R" && diagonalx !== -1) return false;
-            if (piece.joueur === "N" && diagonalx !== 1) return false;
+            if (piece.joueur === "R" && diagonalx !== -1) {
+                return false;
+            }
+            if (piece.joueur === "N" && diagonalx !== 1) {
+                return false;
+            }
         }
         return true;
     }
 
-    // Vérifie si un déplacement capture
+    // Vérifier si un mouvement est une capture
     private capture(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
         const diagonalx = x2 - x1;
         const diagonaly = y2 - y1;
 
-        if (this.absolute(diagonalx) !== 2 || this.absolute(diagonaly) !== 2) return false;
+        if (this.absolute(diagonalx) !== 2 || this.absolute(diagonaly) !== 2) {
+            return false;
+        }
 
         const xm = x1 + diagonalx / 2;
         const ym = y1 + diagonaly / 2;
 
         const pieceCoince = this.plateau.getPiece(xm, ym);
-        if (!pieceCoince) return false;
-        if (pieceCoince.joueur === this.joueurCourant) return false;
+        if (!pieceCoince) {
+            return false;
+        }
+        if (pieceCoince.joueur === this.joueurCourant) {
+            return false;
+        }
         return this.caseVide(x2, y2);
     }
 
-    // Déplace la pièce et effectue une capture
-    // Déplace la pièce et effectue une capture
+    // Déplacer la pièce et effectuer un mouvement (simple ou capture)
     private futurCapture(x1: number, y1: number, x2: number, y2: number): "simple" | "capture" | null {
         const piece = this.plateau.getPiece(x1, y1);
-        if (!piece) return null;
+        if (!piece) {
+            return null;
+        }
 
+        // Déplacement simple
         if (this.diagonalSimple(x1, y1, x2, y2, piece)) {
             this.plateau.deplacerPiece(x1, y1, x2, y2);
             return "simple";
         }
 
+        // Déplacement avec capture
         if (this.capture(x1, y1, x2, y2, piece)) {
             const xm = x1 + (x2 - x1) / 2;
             const ym = y1 + (y2 - y1) / 2;
@@ -189,7 +229,7 @@ export class BaseRegles {
             this.plateau.supprimerPiece(xm, ym);
             this.plateau.deplacerPiece(x1, y1, x2, y2);
 
-            // après la capture, vérifier s’il y a encore une capture possible
+            // Après une capture, vérifier si une autre capture est possible
             if (this.capturerEnChaine(x2, y2, piece)) {
                 console.log("Vous pouvez continuez les captures!");
             }
@@ -219,16 +259,16 @@ export class BaseRegles {
             return;
         }
 
-        // Si c'est un déplacement simple → changer de joueur
+        // Si c'est un déplacement simple - changer de joueur
         if (resultat === "simple") {
             this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
         }
 
-        // Si c'est une capture → vérifier s’il reste des captures
+        // Si c'est une capture → vérifier s’il reste des captures possibles
         if (resultat === "capture") {
             const piece = this.plateau.getPiece(x2, y2);
             if (piece && !this.capturerEnChaine(x2, y2, piece)) {
-                // aucune capture - on change de joueur
+                // aucune capture possible - on change de joueur
                 this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
             } else {
                 // sinon - le même joueur continue
@@ -239,8 +279,8 @@ export class BaseRegles {
         this.afficherPiece();
     }
 
+    // Vérifier s’il reste des captures possibles
     private capturerEnChaine(x: number, y: number, piece: Piece): boolean {
-        // toutes les directions possibles pour une capture
         const directions = [
             { dx: 2, dy: 2 },
             { dx: 2, dy: -2 },
