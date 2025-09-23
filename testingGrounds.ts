@@ -13,7 +13,6 @@ Les étapes :
  - Note : ignorez le changement automatique de `joueurCourant` pour ce test afin que la pièce puisse continuer son parcours sans interruption
 */
 
-
 const jeu = new BaseRegles();
 jeu.afficherPiece();
 function special(jeu: BaseRegles, x1: number, y1: number, x2: number, y2: number) {
