@@ -1,8 +1,9 @@
+// Projet: Création du jeu de Dames
 import * as readlineSync from 'readline-sync';
 
 // CLASSE : Pièce
 export class Piece {
-    joueur: string; // "R" ou "N"
+    joueur: string; // "R" (rouge) ou "N" (noir)
     estDame: boolean;
 
     constructor(joueur: string, estDame: boolean = false) {
@@ -10,8 +11,13 @@ export class Piece {
         this.estDame = estDame;
     }
 
+    // Obtenir une représentation textuelle
     affichage(): string {
-        return this.estDame ? this.joueur.toUpperCase() : this.joueur.toLowerCase();
+        if (this.estDame) {
+            return this.joueur.toUpperCase(); // R ou N (dame)
+        } else {
+            return this.joueur.toLowerCase(); // r ou n (pion)
+        }
     }
 }
 
@@ -26,6 +32,7 @@ export class Plateau {
     }
 
     private initialiser(): void {
+        this.grille = [];
         for (let i = 0; i < this.taille; i++) {
             this.grille[i] = [];
             for (let j = 0; j < this.taille; j++) {
@@ -33,15 +40,23 @@ export class Plateau {
             }
         }
 
-        // Noires en haut
-        for (let i = 0; i < 3; i++)
-            for (let j = 0; j < this.taille; j++)
-                if ((i + j) % 2 === 1) this.grille[i][j] = new Piece("N");
+        // Placer les pièces noires (en haut)
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < this.taille; j++) {
+                if ((i + j) % 2 === 1) {
+                    this.grille[i][j] = new Piece("N"); // joueur noir
+                }
+            }
+        }
 
-        // Rouges en bas
-        for (let i = this.taille - 3; i < this.taille; i++)
-            for (let j = 0; j < this.taille; j++)
-                if ((i + j) % 2 === 1) this.grille[i][j] = new Piece("R");
+        // Placer les pièces rouges (en bas)
+        for (let i = this.taille - 3; i < this.taille; i++) {
+            for (let j = 0; j < this.taille; j++) {
+                if ((i + j) % 2 === 1) {
+                    this.grille[i][j] = new Piece("R"); // joueur rouge
+                }
+            }
+        }
     }
 
     afficher(): void {
@@ -49,8 +64,12 @@ export class Plateau {
         for (let i = 0; i < this.taille; i++) {
             let ligne = i + " ";
             for (let j = 0; j < this.taille; j++) {
-                ligne += this.grille[i][j]?.affichage() ?? ".";
-                ligne += " ";
+                const casePlateau = this.grille[i][j];
+                if (casePlateau) {
+                    ligne += casePlateau.affichage() + " ";
+                } else {
+                    ligne += ". ";
+                }
             }
             console.log(ligne);
         }
@@ -61,28 +80,41 @@ export class Plateau {
     }
 
     getPiece(x: number, y: number): Piece | null {
-        return this.estValide(x, y) ? this.grille[x][y] : null;
+        if (!this.estValide(x, y)) {
+            return null;
+        } else {
+            return this.grille[x][y];
+        }
     }
 
-    deplacerPiece(x1: number, y1: number, x2: number, y2: number): void {
+    deplacerPiece(x1: number, y1: number, x2: number, y2: number): boolean {
+        if (!this.estValide(x1, y1) || !this.estValide(x2, y2)) {
+            return false;
+        }
         const piece = this.grille[x1][y1];
-        if (!piece) return;
+        if (!piece) {
+            return false;
+        }
 
         this.grille[x2][y2] = piece;
         this.grille[x1][y1] = null;
 
-        // Promotion après tous les coups
-        if (!piece.estDame && ((piece.joueur === "R" && x2 === 0) || (piece.joueur === "N" && x2 === this.taille - 1))) {
+        // Promotion si arrivée au bout
+        if ((piece.joueur === "R" && x2 === 0) || (piece.joueur === "N" && x2 === this.taille - 1)) {
             piece.estDame = true;
         }
+
+        return true;
     }
 
     supprimerPiece(x: number, y: number): void {
-        if (this.estValide(x, y)) this.grille[x][y] = null;
+        if (this.estValide(x, y)) {
+            this.grille[x][y] = null;
+        }
     }
 }
 
-// CLASSE : Règles
+// CLASSE : Règles de base
 export class BaseRegles {
     private plateau: Plateau;
     private joueurCourant: string;
@@ -92,12 +124,19 @@ export class BaseRegles {
         this.joueurCourant = "R";
     }
 
-    getPlateau(): Plateau { return this.plateau; }
-    getJoueurCourant(): string { return this.joueurCourant; }
+    public getPlateau(): Plateau {
+        return this.plateau;
+    }
 
-    private absolute(x: number): number { return x >= 0 ? x : -x; }
+    public getJoueurCourant(): string {
+        return this.joueurCourant;
+    }
 
-    public afficherPiece(): void {
+    private absolute(x: number): number {
+        return x >= 0 ? x : -x;
+    }
+
+    afficherPiece(): void {
         console.log(`Joueur courant : ${this.joueurCourant}`);
         this.plateau.afficher();
     }
@@ -114,144 +153,181 @@ export class BaseRegles {
     private diagonalSimple(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
         const dx = x2 - x1;
         const dy = y2 - y1;
+
         if (this.absolute(dx) !== 1 || this.absolute(dy) !== 1) return false;
 
         if (!piece.estDame) {
             if (piece.joueur === "R" && dx !== -1) return false;
             if (piece.joueur === "N" && dx !== 1) return false;
         }
+
         return true;
     }
 
     private capture(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
         const dx = x2 - x1;
         const dy = y2 - y1;
+
         if (this.absolute(dx) !== 2 || this.absolute(dy) !== 2) return false;
+
+        if (!piece.estDame) {
+            if (piece.joueur === "R" && dx !== -2) return false;
+            if (piece.joueur === "N" && dx !== 2) return false;
+        }
 
         const xm = x1 + dx / 2;
         const ym = y1 + dy / 2;
+
         const pieceCoince = this.plateau.getPiece(xm, ym);
-        return pieceCoince !== null && pieceCoince.joueur !== this.joueurCourant && this.caseVide(x2, y2);
-    }
-
-    private capturerEnChaine(x: number, y: number, piece: Piece): boolean {
-        const dirs = [
-            { dx: 2, dy: 2 }, { dx: 2, dy: -2 },
-            { dx: -2, dy: 2 }, { dx: -2, dy: -2 }
-        ];
-        return dirs.some(dir => this.capture(x, y, x + dir.dx, y + dir.dy, piece));
-    }
-
-    private captureForce(): boolean {
-        for (let x = 0; x < 8; x++)
-            for (let y = 0; y < 8; y++) {
-                const piece = this.plateau.getPiece(x, y);
-                if (piece && piece.joueur === this.joueurCourant && this.capturerEnChaine(x, y, piece)) return true;
-            }
-        return false;
-    }
-
-    private piecePeutCapturer(x: number, y: number): boolean {
-        const piece = this.plateau.getPiece(x, y);
-        return piece !== null && piece.joueur === this.joueurCourant && this.capturerEnChaine(x, y, piece);
+        if (!pieceCoince) return false;
+        if (pieceCoince.joueur === this.joueurCourant) return false;
+        return this.caseVide(x2, y2);
     }
 
     private futurCapture(x1: number, y1: number, x2: number, y2: number): "simple" | "capture" | null {
         const piece = this.plateau.getPiece(x1, y1);
         if (!piece) return null;
-        if (this.diagonalSimple(x1, y1, x2, y2, piece)) return "simple";
-        if (this.capture(x1, y1, x2, y2, piece)) return "capture";
-        return null;
-    }
 
-    public actionsPossibles(x: number, y: number): boolean {
-        const piece = this.plateau.getPiece(x, y);
-        if (!piece || piece.joueur !== this.joueurCourant) return false;
-
-        // Simple moves
-        const dirs = [
-            { dx: 1, dy: 1 }, { dx: 1, dy: -1 },
-            { dx: -1, dy: 1 }, { dx: -1, dy: -1 }
-        ];
-        for (const dir of dirs) {
-            const nx = x + dir.dx;
-            const ny = y + dir.dy;
-            if (this.plateau.estValide(nx, ny) && this.plateau.getPiece(nx, ny) === null) return true;
-        }
-
-        // Capture
-        return this.capturerEnChaine(x, y, piece);
-    }
-
-    public lancerCoup(x1: number, y1: number, x2: number, y2: number): "ok" | "captureManquante" | "deplacementInvalide" | "continueCapture" {
-        if (!this.propriete(x1, y1) || !this.caseVide(x2, y2)) {
-            return "deplacementInvalide";
-        }
-
-        // Vérifier capture obligatoire
-        if (this.captureForce() && !this.piecePeutCapturer(x1, y1)) {
-            return "captureManquante";
-        }
-
-        const piece = this.plateau.getPiece(x1, y1);
-        if (!piece) return "deplacementInvalide";
-
-        const resultat = this.futurCapture(x1, y1, x2, y2);
-        if (!resultat) return "deplacementInvalide";
-
-        if (resultat === "simple") {
+        if (this.diagonalSimple(x1, y1, x2, y2, piece)) {
             this.plateau.deplacerPiece(x1, y1, x2, y2);
-            return "ok";
-        } else if (resultat === "capture") {
+            return "simple";
+        }
+
+        if (this.capture(x1, y1, x2, y2, piece)) {
             const xm = x1 + (x2 - x1) / 2;
             const ym = y1 + (y2 - y1) / 2;
+
             this.plateau.supprimerPiece(xm, ym);
             this.plateau.deplacerPiece(x1, y1, x2, y2);
 
-            // Vérifier capture en chaîne
             if (this.capturerEnChaine(x2, y2, piece)) {
-                return "continueCapture";
+                console.log("Vous pouvez continuez les captures!");
             }
-            return "ok";
+
+            return "capture";
         }
 
-        return "deplacementInvalide";
+        return null;
+    }
+
+    private capturerEnChaine(x: number, y: number, piece: Piece): boolean {
+        const directions = [
+            { dx: 2, dy: 2 },
+            { dx: 2, dy: -2 },
+            { dx: -2, dy: 2 },
+            { dx: -2, dy: -2 }
+        ];
+
+        for (const dir of directions) {
+            const nx = x + dir.dx;
+            const ny = y + dir.dy;
+            if (this.capture(x, y, nx, ny, piece)) return true;
+        }
+
+        return false;
+    }
+
+    private captureForce(): boolean {
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                const piece = this.plateau.getPiece(x, y);
+                if (piece && piece.joueur === this.joueurCourant) {
+                    const directions = [
+                        { dx: 2, dy: 2 },
+                        { dx: 2, dy: -2 },
+                        { dx: -2, dy: 2 },
+                        { dx: -2, dy: -2 }
+                    ];
+                    for (const dir of directions) {
+                        const nx = x + dir.dx;
+                        const ny = y + dir.dy;
+                        if (this.capture(x, y, nx, ny, piece)) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    lancerCoup(x1: number, y1: number, x2: number, y2: number): boolean {
+        const captureObligatoire = this.captureForce();
+        const piece = this.plateau.getPiece(x1, y1);
+
+        if (!piece || piece.joueur !== this.joueurCourant) {
+            console.log("C'est pas votre pièce !");
+            return false;
+        }
+
+        const estCapture = this.capture(x1, y1, x2, y2, piece);
+
+        if (captureObligatoire && !estCapture) {
+            console.log("Vous devez capturer !");
+            return false;
+        }
+
+        if (!this.caseVide(x2, y2)) {
+            console.log("La case de destination n'est pas vide !");
+            return false;
+        }
+
+        const resultat = this.futurCapture(x1, y1, x2, y2);
+        if (!resultat) {
+            console.log("Coup invalide !");
+            return false;
+        }
+
+        if (resultat === "simple") {
+            this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        } else if (resultat === "capture") {
+            if (!this.capturerEnChaine(x2, y2, piece)) {
+                this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+            }
+        }
+
+        this.afficherPiece();
+        return true;
     }
 }
 
 // CLASSE : Victoire
 export class Victoire {
     private plateau: Plateau;
-    private regles: BaseRegles;
 
-    constructor(plateau: Plateau, regles: BaseRegles) {
+    constructor(plateau: Plateau) {
         this.plateau = plateau;
-        this.regles = regles;
     }
 
     private sansPieces(joueur: string): boolean {
-        for (let i = 0; i < 8; i++)
-            for (let j = 0; j < 8; j++)
-                if (this.plateau.getPiece(i, j)?.joueur === joueur) return false;
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const piece = this.plateau.getPiece(i, j);
+                if (piece && piece.joueur === joueur) return false;
+            }
+        }
         return true;
     }
 
     private sansMouvement(joueur: string): boolean {
-        for (let x = 0; x < 8; x++)
+        for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
                 const piece = this.plateau.getPiece(x, y);
                 if (piece && piece.joueur === joueur) {
-                    const joueurCourantSauve = this.regles.getJoueurCourant();
-                    (this.regles as any).joueurCourant = joueur;
-
-                    if (this.regles.actionsPossibles(x, y)) {
-                        (this.regles as any).joueurCourant = joueurCourantSauve;
-                        return false;
+                    const directions = [
+                        { dx: 1, dy: 1 },
+                        { dx: 1, dy: -1 },
+                        { dx: -1, dy: 1 },
+                        { dx: -1, dy: -1 }
+                    ];
+                    for (const dir of directions) {
+                        const nx = x + dir.dx;
+                        const ny = y + dir.dy;
+                        if (this.plateau.estValide(nx, ny) && this.plateau.getPiece(nx, ny) === null) {
+                            return false;
+                        }
                     }
-
-                    (this.regles as any).joueurCourant = joueurCourantSauve;
                 }
             }
+        }
         return true;
     }
 
@@ -266,55 +342,36 @@ export class Victoire {
     }
 }
 
-// Lancement du jeu
+// Fonction pour lancer le jeu
 function lancerPartie() {
     const jeu = new BaseRegles();
-    const victoire = new Victoire(jeu.getPlateau(), jeu);
-
+    const victoire = new Victoire(jeu.getPlateau());
     let debutPartie = true;
+
     while (debutPartie) {
         console.clear?.();
         console.log(`Joueur actuel : ${jeu.getJoueurCourant()}`);
         jeu.afficherPiece();
 
-        let coupValide = false;
-        while (!coupValide) {
-            const x1 = Number(readlineSync.question("Ligne de la pièce à déplacer (0-7) : "));
-            const y1 = Number(readlineSync.question("Colonne de la pièce à déplacer (0-7) : "));
-            const x2 = Number(readlineSync.question("Ligne de destination (0-7) : "));
-            const y2 = Number(readlineSync.question("Colonne de destination (0-7) : "));
+        let coupUtilise = false;
 
-            const resultat = jeu.lancerCoup(x1, y1, x2, y2);
+        while (!coupUtilise) {
+            const x1 = Number(readlineSync.question("Entrez la ligne de la pièce à déplacer (0-7) : "));
+            const y1 = Number(readlineSync.question("Entrez la colonne de la pièce à déplacer (0-7) : "));
+            const x2 = Number(readlineSync.question("Entrez la ligne de destination (0-7) : "));
+            const y2 = Number(readlineSync.question("Entrez la colonne de destination (0-7) : "));
 
-            switch (resultat) {
-                case "ok":
-                    coupValide = true;
-                    break;
-                case "captureManquante":
-                    console.log("Vous devez capturer une pièce !");
-                    readlineSync.question("Appuyez sur Entrée pour continuer...");
-                    break;
-                case "deplacementInvalide":
-                    console.log("Déplacement invalide !");
-                    readlineSync.question("Appuyez sur Entrée pour continuer...");
-                    break;
-                case "continueCapture":
-                    console.log("Vous devez continuer à capturer avec la même pièce !");
-                    readlineSync.question("Appuyez sur Entrée pour continuer...");
-                    // Ne pas changer joueur, laisser le coup en cours
-                    coupValide = true;
-                    break;
-            }
+            coupUtilise = jeu.lancerCoup(x1, y1, x2, y2);
         }
 
-        // Vérifier victoire
-        const resultatVictoire = victoire.victoireCheck();
-        if (resultatVictoire) {
+        const resultat = victoire.victoireCheck();
+        if (resultat !== null) {
             console.clear?.();
             jeu.afficherPiece();
-            console.log(resultatVictoire);
+            console.log(resultat);
             debutPartie = false;
         }
     }
 }
+
 lancerPartie();
