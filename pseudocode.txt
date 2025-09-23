@@ -63,4 +63,40 @@ CLASSE Plateau
             FIN POUR
         FIN POUR
     FIN FONCTION
+    // Fonction : afficher le plateau
+    FONCTION afficher()
+    // indices colonnes
+        AFFICHER "  0 1 2 3 4 5 6 7"
+        // parcourir chaque ligne
+        POUR i allant de 0 à taille-1
+            // commencer la ligne avec l’indice de ligne
+            ligne = (i + " ")
+            // parcourir chaque colonne
+            POUR j allant de 0 à taille-1
+                // récupérer le contenu de la case
+                casePlateau = grille[i][j]
+                SI casePlateau existe
+                    ligne += casePlateau.affichage() + " "
+                SINON
+                    ligne += ". "
+                FIN SI
+            FIN POUR
+            // imprimer la ligne complète
+            AFFICHER ligne
+        FIN POUR
+    FIN FONCTION
+    
+    // Fonction : vérifier si une position est valide
+    FONCTION estValide(x, y)
+        RETOURNER (x entre 0 et taille-1) ET (y entre 0 et taille-1)
+    FIN FONCTION
+
+    // Fonction : obtenir la pièce à une position donnée
+    FONCTION getPiece(x, y)
+        SI estValide(x, y) est FAUX
+            RETOURNER vide
+        SINON
+            RETOURNER grille[x][y]
+        FIN SI
+    FIN FONCTION
 FIN CLASSE
