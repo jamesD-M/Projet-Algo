@@ -57,17 +57,17 @@ Classe Plateau :
 // Vérification des mouvements valides et captures
 
 Classe Deplacement :
-    - Fonction estProprietePiece(x, y, joueurActuel) :
+    - Fonction pieceValide(x, y, joueurActuel) :
         Vérifie qu’une pièce existe à (x, y)
         Vérifie que la pièce appartient au joueur actuel
         Retourne vrai si ok, sinon faux
 
-    - Fonction estCaseVide(x, y) :
+    - Fonction caseVide(x, y) :
         Vérifie que (x, y) est dans le plateau
         Vérifie que la case est vide
         Retourne vrai si ok, sinon faux
 
-    - Fonction estDeplacementDiagonalSimple(x1, y1, x2, y2, piece) :
+    - Fonction diagonalSimple(x1, y1, x2, y2, piece) :
         Si piece.estDame = vrai :
             Vérifie que la différence de ligne = ±1
             Vérifie que la différence de colonne = ±1
@@ -77,19 +77,19 @@ Classe Deplacement :
             Vérifie que la colonne change de ±1
         Retourne vrai si mouvement simple valide
 
-    - Fonction estDeplacementCapture(x1, y1, x2, y2, piece) :
+    - Fonction deplacementCapture(x1, y1, x2, y2, piece) :
         Vérifie que déplacement de deux cases en diagonale
         Calcule la case intermédiaire : (xm, ym) = ((x1+x2)/2, (y1+y2)/2)
         Vérifie qu’il y a une pièce adverse à (xm, ym)
         Vérifie que la case de destination est vide
         Retourne vrai si capture valide, sinon faux
 
-    - Fonction peutEnchainerCapture(x, y, piece) :
+    - Fonction enchainerCapture(x, y, piece) :
         Pour toutes les diagonales possibles :
             Vérifie si une capture est possible depuis cette position
         Retourne vrai si au moins une capture possible, sinon faux
 
-    - Fonction estDeplacementValide(x1, y1, x2, y2, piece) :
+    - Fonction deplacementValide(x1, y1, x2, y2, piece) :
         Appelle estProprietePiece(x1, y1, joueurActuel)
         Appelle estCaseVide(x2, y2)
         Si mouvement simple → appelle estDeplacementDiagonalSimple()

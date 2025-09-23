@@ -80,7 +80,7 @@ export class Plateau {
         return this.grille[x][y];
     }
 
-    // Déplacer une pièce (sans vérifier la légalité pour l’instant)
+    // Déplacer une pièce
     deplacerPiece(x1: number, y1: number, x2: number, y2: number): boolean {
         if (!this.estValide(x1, y1) || !this.estValide(x2, y2)) {
             return false;
@@ -97,5 +97,116 @@ export class Plateau {
         }
 
         return true;
+    }
+
+    // Supprime une pièce à la position donnée
+    supprimerPiece(x: number, y: number): void {
+        if (this.estValide(x, y)) {
+            this.grille[x][y] = null;
+        }
+    }
+}
+
+export class JeuDeDames {
+    private plateau: Plateau;
+    private joueurCourant: string;
+
+    constructor() {
+        this.plateau = new Plateau();
+        // le rouge commence
+        this.joueurCourant = "R";
+    }
+
+    // Afficher le plateau avec le joueur courant
+    afficherPiece(): void {
+        console.log(`Tour du joueur : ${this.joueurCourant}`);
+        this.plateau.afficher();
+    }
+
+    // Vérifie que la pièce appartient au joueur courant
+    private propriete(x: number, y: number): boolean {
+        const piece = this.plateau.getPiece(x, y);
+        return piece !== null && piece.joueur === this.joueurCourant;
+    }
+
+    // Vérifie que la case est vide
+    private caseVide(x: number, y: number): boolean {
+        return this.plateau.estValide(x, y) && this.plateau.getPiece(x, y) === null;
+    }
+
+    // Vérifie un mouvement diagonal
+    private diagonalSimple(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+
+        if (Math.abs(dx) !== 1 || Math.abs(dy) !== 1) return false;
+
+        if (!piece.estDame) {
+            if (piece.joueur === "R" && dx !== -1) return false;
+            if (piece.joueur === "N" && dx !== 1) return false;
+        }
+        return true;
+    }
+
+    // Vérifie si un déplacement capture
+    private capture(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+
+        if (Math.abs(dx) !== 2 || Math.abs(dy) !== 2) return false;
+
+        const xm = x1 + dx / 2;
+        const ym = y1 + dy / 2;
+
+        const pieceIntermediaire = this.plateau.getPiece(xm, ym);
+        if (!pieceIntermediaire) return false;
+        if (pieceIntermediaire.joueur === this.joueurCourant) return false;
+
+        return this.caseVide(x2, y2);
+    }
+
+    // Déplace la pièce et effectue éventuellement une capture
+    private futurCapture(x1: number, y1: number, x2: number, y2: number): boolean {
+        const piece = this.plateau.getPiece(x1, y1);
+        if (!piece) return false;
+
+        if (this.diagonalSimple(x1, y1, x2, y2, piece)) {
+            this.plateau.deplacerPiece(x1, y1, x2, y2);
+            return true;
+        }
+
+        if (this.capture(x1, y1, x2, y2, piece)) {
+            const xm = x1 + (x2 - x1) / 2;
+            const ym = y1 + (y2 - y1) / 2;
+            // retirer la pièce capturée
+            this.plateau.supprimerPiece(xm, ym);
+            this.plateau.deplacerPiece(x1, y1, x2, y2);
+            return true;
+        }
+
+        return false;
+    }
+
+    // Jouer un coup
+    lancerCoup(x1: number, y1: number, x2: number, y2: number): void {
+        if (!this.propriete(x1, y1)) {
+            console.log("Ce n'est pas votre pièce !");
+            return;
+        }
+
+        if (!this.caseVide(x2, y2)) {
+            console.log("Case de destination occupée !");
+            return;
+        }
+
+        const valide = this.futurCapture(x1, y1, x2, y2);
+        if (!valide) {
+            console.log("Mouvement invalide !");
+            return;
+        }
+
+        // Changer de joueur
+        this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        this.afficherPiece();
     }
 }
