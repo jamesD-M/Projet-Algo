@@ -95,7 +95,7 @@ Classe Deplacement :
         Si mouvement simple → appelle estDeplacementDiagonalSimple()
         Sinon si capture → appelle estDeplacementCapture()
         Retourne vrai si l’un des mouvements est valide, sinon faux
-    
+
     - Fonction capturerEnChaine(x, y, piece) :
         Définir les directions possibles : (2,2), (2,-2), (-2,2), (-2,-2)
         Pour chaque direction dir :
@@ -104,3 +104,13 @@ Classe Deplacement :
             Si capture(x, y, nx, ny, piece) est vrai → retourner vrai
         Fin pour
         Retourner faux
+
+    - Fonction captureObligatoire() :
+    Pour chaque ligne x de 0 à 7 :
+        Pour chaque colonne y de 0 à 7 :
+            piece = plateau.getPiece(x, y)
+            Si piece existe ET piece.joueur == joueurCourant :
+                Si capturerEnChaine(x, y, piece) est vrai → retourner vrai
+        Fin pour
+    Fin pour
+    Retourner faux
