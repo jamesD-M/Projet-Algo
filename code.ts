@@ -107,19 +107,25 @@ export class Plateau {
     }
 }
 
-export class JeuDeDames {
+export class BaseRegles {
     private plateau: Plateau;
     private joueurCourant: string;
 
     constructor() {
+        // lance le plateau et commence avec le jouer rouge
         this.plateau = new Plateau();
         // le rouge commence
         this.joueurCourant = "R";
     }
+    
+    // Retourne la valeure absolue d'un nombre
+    private absolute(x:number):number{
+        return x >= 0 ? x : -x;
+    }
 
     // Afficher le plateau avec le joueur courant
     afficherPiece(): void {
-        console.log(`Tour du joueur : ${this.joueurCourant}`);
+        console.log(`Jouer courant : ${this.joueurCourant}`);
         this.plateau.afficher();
     }
 
@@ -136,36 +142,36 @@ export class JeuDeDames {
 
     // Vérifie un mouvement diagonal
     private diagonalSimple(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
-        const dx = x2 - x1;
-        const dy = y2 - y1;
+        const diagonalx = x2 - x1;
+        const diagonaly = y2 - y1;
 
-        if (Math.abs(dx) !== 1 || Math.abs(dy) !== 1) return false;
+        // Comme math(abs) n'est pas possible... cette ligne est donc la pour s'assurer que le déplacement change uniquement que d'une case
+        if (this.absolute(diagonalx) !== 1 || this.absolute(diagonaly) !== 1) return false;
 
         if (!piece.estDame) {
-            if (piece.joueur === "R" && dx !== -1) return false;
-            if (piece.joueur === "N" && dx !== 1) return false;
+            if (piece.joueur === "R" && diagonalx !== -1) return false;
+            if (piece.joueur === "N" && diagonalx !== 1) return false;
         }
         return true;
     }
 
     // Vérifie si un déplacement capture
     private capture(x1: number, y1: number, x2: number, y2: number, piece: Piece): boolean {
-        const dx = x2 - x1;
-        const dy = y2 - y1;
+        const diagonalx = x2 - x1;
+        const diagonaly = y2 - y1;
 
-        if (Math.abs(dx) !== 2 || Math.abs(dy) !== 2) return false;
+        if (this.absolute(diagonalx) !== 2 || this.absolute(diagonaly) !== 2) return false;
 
-        const xm = x1 + dx / 2;
-        const ym = y1 + dy / 2;
+        const xm = x1 + diagonalx / 2;
+        const ym = y1 + diagonaly / 2;
 
-        const pieceIntermediaire = this.plateau.getPiece(xm, ym);
-        if (!pieceIntermediaire) return false;
-        if (pieceIntermediaire.joueur === this.joueurCourant) return false;
-
+        const pieceCoince = this.plateau.getPiece(xm, ym);
+        if (!pieceCoince) return false;
+        if (pieceCoince.joueur === this.joueurCourant) return false;
         return this.caseVide(x2, y2);
     }
 
-    // Déplace la pièce et effectue éventuellement une capture
+    // Déplace la pièce et effectue une capture
     private futurCapture(x1: number, y1: number, x2: number, y2: number): boolean {
         const piece = this.plateau.getPiece(x1, y1);
         if (!piece) return false;
@@ -190,18 +196,18 @@ export class JeuDeDames {
     // Jouer un coup
     lancerCoup(x1: number, y1: number, x2: number, y2: number): void {
         if (!this.propriete(x1, y1)) {
-            console.log("Ce n'est pas votre pièce !");
+            console.log("Cette pièce n'est pas à vous!");
             return;
         }
 
         if (!this.caseVide(x2, y2)) {
-            console.log("Case de destination occupée !");
+            console.log("Case occupée!");
             return;
         }
 
         const valide = this.futurCapture(x1, y1, x2, y2);
         if (!valide) {
-            console.log("Mouvement invalide !");
+            console.log("Mouvement invalide!");
             return;
         }
 
