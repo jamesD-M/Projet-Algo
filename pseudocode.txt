@@ -1,66 +1,55 @@
-// Classe : Piece
-// Représente un pion/dame sur le plateau
+// CLASSE : Piece
+// Représente un pion ou une dame
+Classe Piece :
+    - Propriétés :
+        joueur → "R" (rouge) ou "N" (noir)
+        estDame → vrai/faux (par défaut faux)
 
-CLASSE Piece
-    // le joueur propriétaire de la pièce ("R" ou "B")
-    PROPRIÉTÉ joueur
-    // indique si la pièce est promue en dame (vrai/faux)
-    PROPRIÉTÉ estDame
+    - Constructeur :
+        Associe la pièce à un joueur
+        Indique si elle est une dame ou non
 
-    FONCTION constructeur(joueur, estDame = faux)
-        METTRE this.joueur = joueur
-        METTRE this.estDame = estDame
-    FIN FONCTION
+    - Fonction affichage() :
+        Si estDame = vrai → retourner joueur en majuscule ("R", "N")
+        Sinon → retourner joueur en minuscule ("r", "n")
 
-    FONCTION affichage()
-        SI estDame est vrai
-            RETOURNER joueur en MAJUSCULE
-            // Exemple : "R" = dame rouge, "B" = dame noire
-        SINON
-            RETOURNER joueur en minuscule
-        FIN SI
-    FIN FONCTION
-FIN CLASSE
+// CLASSE : Plateau
+// Représente le damier et les positions des pièces
+Classe Plateau :
+    - Propriétés :
+        grille → tableau 2D de 8×8 cases
+        taille = 8
 
-// Classe : Plateau
-// Représente le damier avec les pièces
+    - Constructeur :
+        Crée une grille vide
+        Appelle initialiser() pour placer les pièces
 
-CLASSE Plateau
-    // tableau 2D contenant des cases
-    PROPRIÉTÉ grille
-    // dimension du plateau
-    PROPRIÉTÉ taille = 8
+    - Fonction initialiser() :
+        Crée une grille 8×8 remplie de cases vides (null)
+        Place les pièces noires ("N") sur les 3 premières lignes (cases foncées)
+        Place les pièces rouges ("R") sur les 3 dernières lignes (cases foncées)
 
-    FONCTION constructeur()
-        INITIALISER grille comme tableau vide
-        APPELER initialiser()
-    FIN FONCTION
+    - Fonction afficher() :
+        Affiche les indices de colonnes (0 à 7)
+        Pour chaque ligne :
+            - Commence avec l’indice de la ligne
+            - Pour chaque colonne :
+                - Si une pièce existe → afficher via affichage()
+                - Sinon → afficher "."
+            - Affiche la ligne complète
 
-    FONCTION initialiser()
-        // Créer un plateau
-        POUR chaque ligne i de 0 à taille-1
-            grille[i] = tableau vide
-            POUR chaque colonne j de 0 à taille-1
-                grille[i][j] = vide
-            FIN POUR
-        FIN POUR
+    - Fonction estValide(x, y) :
+        Retourne vrai si (x, y) est à l’intérieur du plateau
+        Sinon retourne faux
 
-        // Placement des pièces noires
-        POUR chaque ligne i de 0 à 2
-            POUR chaque colonne j de 0 à taille-1
-                SI (i + j) est impair
-                    grille[i][j] = nouvelle Piece("B")
-                FIN SI
-            FIN POUR
-        FIN POUR
+    - Fonction getPiece(x, y) :
+        Si position invalide → retourne null
+        Sinon → retourne la pièce (ou null si vide)
 
-        // Placement des pièces rouge
-        POUR chaque ligne i de (taille-3) à (taille-1)
-            POUR chaque colonne j de 0 à taille-1
-                SI (i + j) est impair
-                    grille[i][j] = nouvelle Piece("R")
-                FIN SI
-            FIN POUR
-        FIN POUR
-    FIN FONCTION
-FIN CLASSE
+    - Fonction deplacerPiece(x1, y1, x2, y2) :
+        Vérifie que les positions sont valides
+        Vérifie qu’une pièce existe au départ
+        Déplace la pièce vers la nouvelle case
+        Vide l’ancienne case
+        Si la pièce atteint le dernier rang adverse → la promouvoir en dame
+        Retourne vrai si le déplacement a été effectué
