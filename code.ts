@@ -172,25 +172,32 @@ export class BaseRegles {
     }
 
     // Déplace la pièce et effectue une capture
-    private futurCapture(x1: number, y1: number, x2: number, y2: number): boolean {
+    // Déplace la pièce et effectue une capture
+    private futurCapture(x1: number, y1: number, x2: number, y2: number): "simple" | "capture" | null {
         const piece = this.plateau.getPiece(x1, y1);
-        if (!piece) return false;
+        if (!piece) return null;
 
         if (this.diagonalSimple(x1, y1, x2, y2, piece)) {
             this.plateau.deplacerPiece(x1, y1, x2, y2);
-            return true;
+            return "simple";
         }
 
         if (this.capture(x1, y1, x2, y2, piece)) {
             const xm = x1 + (x2 - x1) / 2;
             const ym = y1 + (y2 - y1) / 2;
-            // retirer la pièce capturée
+
             this.plateau.supprimerPiece(xm, ym);
             this.plateau.deplacerPiece(x1, y1, x2, y2);
-            return true;
+
+            // après la capture, vérifier s’il y a encore une capture possible
+            if (this.capturerEnChaine(x2, y2, piece)) {
+                console.log("Vous pouvez continuez les captures!");
+            }
+
+            return "capture";
         }
 
-        return false;
+        return null;
     }
 
     // Jouer un coup
@@ -205,14 +212,51 @@ export class BaseRegles {
             return;
         }
 
-        const valide = this.futurCapture(x1, y1, x2, y2);
-        if (!valide) {
+        const resultat = this.futurCapture(x1, y1, x2, y2);
+
+        if (!resultat) {
             console.log("Mouvement invalide!");
             return;
         }
 
-        // Changer de joueur
-        this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        // Si c'est un déplacement simple → changer de joueur
+        if (resultat === "simple") {
+            this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        }
+
+        // Si c'est une capture → vérifier s’il reste des captures
+        if (resultat === "capture") {
+            const piece = this.plateau.getPiece(x2, y2);
+            if (piece && !this.capturerEnChaine(x2, y2, piece)) {
+                // aucune capture - on change de joueur
+                this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+            } else {
+                // sinon - le même joueur continue
+                console.log("Continuez les captures!");
+            }
+        }
+
         this.afficherPiece();
+    }
+
+    private capturerEnChaine(x: number, y: number, piece: Piece): boolean {
+        // toutes les directions possibles pour une capture
+        const directions = [
+            { dx: 2, dy: 2 },
+            { dx: 2, dy: -2 },
+            { dx: -2, dy: 2 },
+            { dx: -2, dy: -2 }
+        ];
+
+        for (const dir of directions) {
+            const nx = x + dir.dx;
+            const ny = y + dir.dy;
+            if (this.capture(x, y, nx, ny, piece)) {
+                return true;
+            }
+        }
+
+        // aucune capture possible
+        return false;
     }
 }
