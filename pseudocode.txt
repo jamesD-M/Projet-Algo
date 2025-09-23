@@ -95,3 +95,12 @@ Classe Deplacement :
         Si mouvement simple → appelle estDeplacementDiagonalSimple()
         Sinon si capture → appelle estDeplacementCapture()
         Retourne vrai si l’un des mouvements est valide, sinon faux
+    
+    - Fonction capturerEnChaine(x, y, piece) :
+        Définir les directions possibles : (2,2), (2,-2), (-2,2), (-2,-2)
+        Pour chaque direction dir :
+            nx = x + dir.dx
+            ny = y + dir.dy
+            Si capture(x, y, nx, ny, piece) est vrai → retourner vrai
+        Fin pour
+        Retourner faux
