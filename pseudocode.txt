@@ -1,116 +1,153 @@
 // CLASSE : Piece
 // Représente un pion ou une dame
 Classe Piece :
-    - Propriétés :
-        joueur → "R" (rouge) ou "N" (noir)
-        estDame → vrai/faux (par défaut faux)
+	- Propriétés :
+		joueur → "R" (rouge) ou "N" (noir)
+		estDame → vrai/faux (par défaut faux)
 
-    - Constructeur :
-        Associe la pièce à un joueur
-        Indique si elle est une dame ou non
+	- Constructeur :
+		Associe la pièce à un joueur
+		Indique si elle est une dame ou non
 
-    - Fonction affichage() :
-        Si estDame = vrai → retourner joueur en majuscule ("R", "N")
-        Sinon → retourner joueur en minuscule ("r", "n")
+	- Fonction affichage() :
+		Si estDame = vrai → retourner joueur en majuscule ("R", "N")
+		Sinon → retourner joueur en minuscule ("r", "n")
 
 // CLASSE : Plateau
 // Représente le damier et les positions des pièces
 Classe Plateau :
-    - Propriétés :
-        grille → tableau 2D de 8×8 cases
-        taille = 8
+	- Propriétés :
+		grille → tableau 2D de 8×8 cases
+		taille = 8
 
-    - Constructeur :
-        Crée une grille vide
-        Appelle initialiser() pour placer les pièces
+	- Constructeur :
+		Crée une grille vide
+		Appelle initialiser() pour placer les pièces
 
-    - Fonction initialiser() :
-        Crée une grille 8×8 remplie de cases vides (null)
-        Place les pièces noires ("N") sur les 3 premières lignes (cases foncées)
-        Place les pièces rouges ("R") sur les 3 dernières lignes (cases foncées)
+	- Fonction initialiser() :
+		Crée une grille 8×8 remplie de cases vides (null)
+		Place les pièces noires ("N") sur les 3 premières lignes (cases foncées)
+		Place les pièces rouges ("R") sur les 3 dernières lignes (cases foncées)
 
-    - Fonction afficher() :
-        Affiche les indices de colonnes (0 à 7)
-        Pour chaque ligne :
-            - Commence avec l’indice de la ligne
-            - Pour chaque colonne :
-                - Si une pièce existe → afficher via affichage()
-                - Sinon → afficher "."
-            - Affiche la ligne complète
+	- Fonction afficher() :
+		Affiche les indices de colonnes (0 à 7)
+		Pour chaque ligne :
+			Commence avec l’indice de la ligne
+			Pour chaque colonne :
+				Si une pièce existe → afficher via affichage()
+				Sinon → afficher "."
+			Affiche la ligne complète
 
-    - Fonction estValide(x, y) :
-        Retourne vrai si (x, y) est à l’intérieur du plateau
-        Sinon retourne faux
+	- Fonction estValide(x, y) :
+		Retourne vrai si (x, y) est à l’intérieur du plateau
+		Sinon retourne faux
 
-    - Fonction getPiece(x, y) :
-        Si position invalide → retourne null
-        Sinon → retourne la pièce (ou null si vide)
+	- Fonction getPiece(x, y) :
+		Si position invalide → retourne null
+		Sinon → retourne la pièce (ou null si vide)
 
-    - Fonction deplacerPiece(x1, y1, x2, y2) :
-        Vérifie que les positions sont valides
-        Vérifie qu’une pièce existe au départ
-        Déplace la pièce vers la nouvelle case
-        Vide l’ancienne case
-        Si la pièce atteint le dernier rang adverse → la promouvoir en dame
-        Retourne vrai si le déplacement a été effectué
+	- Fonction deplacerPiece(x1, y1, x2, y2) :
+		Vérifie que les positions sont valides
+		Vérifie qu’une pièce existe au départ
+		Déplace la pièce vers la nouvelle case
+		Vide l’ancienne case
+		Si la pièce atteint le dernier rang adverse → la promouvoir en dame
+		Retourne vrai si le déplacement a été effectué
 
 // Vérification des mouvements valides et captures
-
 Classe Deplacement :
-    - Fonction pieceValide(x, y, joueurActuel) :
-        Vérifie qu’une pièce existe à (x, y)
-        Vérifie que la pièce appartient au joueur actuel
-        Retourne vrai si ok, sinon faux
+	- Fonction pieceValide(x, y, joueurActuel) :
+		Vérifie qu’une pièce existe à (x, y)
+		Vérifie que la pièce appartient au joueur actuel
+		Retourne vrai si ok, sinon faux
 
-    - Fonction caseVide(x, y) :
-        Vérifie que (x, y) est dans le plateau
-        Vérifie que la case est vide
-        Retourne vrai si ok, sinon faux
+	- Fonction caseVide(x, y) :
+		Vérifie que (x, y) est dans le plateau
+		Vérifie que la case est vide
+		Retourne vrai si ok, sinon faux
 
-    - Fonction diagonalSimple(x1, y1, x2, y2, piece) :
-        Si piece.estDame = vrai :
-            Vérifie que la différence de ligne = ±1
-            Vérifie que la différence de colonne = ±1
-        Sinon (pièce normale) :
-            Si piece.joueur = "R" → ligne descend de 1 (x2 - x1 = -1)
-            Si piece.joueur = "N" → ligne monte de 1 (x2 - x1 = +1)
-            Vérifie que la colonne change de ±1
-        Retourne vrai si mouvement simple valide
+	- Fonction diagonalSimple(x1, y1, x2, y2, piece) :
+		Si piece.estDame = vrai :
+			Vérifie que la différence de ligne = ±1
+			Vérifie que la différence de colonne = ±1
+		Sinon (pièce normale) :
+			Si piece.joueur = "R" → ligne descend de 1 (x2 - x1 = -1)
+			Si piece.joueur = "N" → ligne monte de 1 (x2 - x1 = +1)
+			Vérifie que la colonne change de ±1
+		Retourne vrai si mouvement simple valide
 
-    - Fonction deplacementCapture(x1, y1, x2, y2, piece) :
-        Vérifie que déplacement de deux cases en diagonale
-        Calcule la case intermédiaire : (xm, ym) = ((x1+x2)/2, (y1+y2)/2)
-        Vérifie qu’il y a une pièce adverse à (xm, ym)
-        Vérifie que la case de destination est vide
-        Retourne vrai si capture valide, sinon faux
+	- Fonction deplacementCapture(x1, y1, x2, y2, piece) :
+		Vérifie que déplacement de deux cases en diagonale
+		Calcule la case intermédiaire : (xm, ym) = ((x1+x2)/2, (y1+y2)/2)
+		Vérifie qu’il y a une pièce adverse à (xm, ym)
+		Vérifie que la case de destination est vide
+		Retourne vrai si capture valide, sinon faux
 
-    - Fonction enchainerCapture(x, y, piece) :
-        Pour toutes les diagonales possibles :
-            Vérifie si une capture est possible depuis cette position
-        Retourne vrai si au moins une capture possible, sinon faux
+	- Fonction enchainerCapture(x, y, piece) :
+		Pour toutes les diagonales possibles :
+			Vérifie si une capture est possible depuis cette position
+		Retourne vrai si au moins une capture possible, sinon faux
 
-    - Fonction deplacementValide(x1, y1, x2, y2, piece) :
-        Appelle estProprietePiece(x1, y1, joueurActuel)
-        Appelle estCaseVide(x2, y2)
-        Si mouvement simple → appelle estDeplacementDiagonalSimple()
-        Sinon si capture → appelle estDeplacementCapture()
-        Retourne vrai si l’un des mouvements est valide, sinon faux
+	- Fonction deplacementValide(x1, y1, x2, y2, piece) :
+		Appelle estProprietePiece(x1, y1, joueurActuel)
+		Appelle estCaseVide(x2, y2)
+		Si mouvement simple → appelle estDeplacementDiagonalSimple()
+		Sinon si capture → appelle estDeplacementCapture()
+		Retourne vrai si l’un des mouvements est valide, sinon faux
 
-    - Fonction capturerEnChaine(x, y, piece) :
-        Définir les directions possibles : (2,2), (2,-2), (-2,2), (-2,-2)
-        Pour chaque direction dir :
-            nx = x + dir.dx
-            ny = y + dir.dy
-            Si capture(x, y, nx, ny, piece) est vrai → retourner vrai
-        Fin pour
-        Retourner faux
+	- Fonction capturerEnChaine(x, y, piece) :
+		Définir les directions possibles : (2,2), (2,-2), (-2,2), (-2,-2)
+		Pour chaque direction dir :
+			nx = x + dir.dx
+			ny = y + dir.dy
+			Si capture(x, y, nx, ny, piece) est vrai → retourner vrai
+		Fin pour
+		Retourner faux
 
-    - Fonction captureForcée() :
-    Pour chaque ligne x de 0 à 7 :
-        Pour chaque colonne y de 0 à 7 :
-            piece = plateau.getPiece(x, y)
-            Si piece existe ET piece.joueur == joueurCourant :
-                Si capturerEnChaine(x, y, piece) est vrai → retourner vrai
-        Fin pour
-    Fin pour
-    Retourner faux
+	- Fonction captureForcée() :
+		Pour chaque ligne x de 0 à 7 :
+			Pour chaque colonne y de 0 à 7 :
+				piece = plateau.getPiece(x, y)
+				Si piece existe ET piece.joueur == joueurCourant :
+					Si capturerEnChaine(x, y, piece) est vrai → retourner vrai
+			Fin pour
+		Fin pour
+		Retourner faux
+
+	Fonction victoireCheck() :
+		rougePerd = sansPieces("R") OU sansMouvement("R")
+		noirPerd = sansPieces("N") OU sansMouvement("N")
+		Si rougePerd ET noirPerd → retourner "Match nul !"
+		Sinon si rougePerd → retourner "Victoire du joueur Noir !"
+		Sinon si noirPerd → retourner "Victoire du joueur Rouge !"
+		Sinon → retourner null
+
+	Fonction lancerPartie() :
+		Initialiser jeu = BaseRegles()
+		Initialiser victoire = Victoire(jeu.getPlateau())
+		debutPartie = vrai
+
+		Tant que debutPartie :
+			Effacer console
+			Afficher "Joueur actuel : " + jeu.getJoueurCourant()
+			jeu.afficherPiece()
+
+			coupUtilise = faux
+			Tant que !coupUtilise :
+				x1 = question("Entrez la ligne de la pièce à déplacer (0-7) : ")
+				y1 = question("Entrez la colonne de la pièce à déplacer (0-7) : ")
+				x2 = question("Entrez la ligne de destination (0-7) : ")
+				y2 = question("Entrez la colonne de destination (0-7) : ")
+
+				Si !jeu.propriete(x1, y1) → continuer
+				coupUtilise = jeu.lancerCoup(x1, y1, x2, y2)
+			Fin Tant que
+
+			resultat = victoire.victoireCheck()
+			Si resultat != null :
+				Effacer console
+				jeu.afficherPiece()
+				Afficher resultat
+				debutPartie = faux
+			Fin Si
+		Fin Tant que
