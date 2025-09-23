@@ -212,7 +212,7 @@ export class BaseRegles {
         }
 
         // Changer de joueur
-        //this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
         this.afficherPiece();
     }
 }
