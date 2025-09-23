@@ -129,7 +129,16 @@ export class BaseRegles {
         this.plateau = new Plateau();
         this.joueurCourant = "R";
     }
-    
+    // Accès au plateau
+    public getPlateau(): Plateau {
+        return this.plateau;
+    }
+
+    // Accès au jouer courant
+    public getJoueurCourant(): string {
+        return this.joueurCourant;
+    }
+
     // Retourner la valeur absolue d'un nombre
     private absolute(x: number): number {
         if (x >= 0) {
@@ -146,7 +155,7 @@ export class BaseRegles {
     }
 
     // Vérifier que la pièce appartient au joueur courant
-    private propriete(x: number, y: number): boolean {
+    public propriete(x: number, y: number): boolean {
         const piece = this.plateau.getPiece(x, y);
         if (piece !== null && piece.joueur === this.joueurCourant) {
             return true;
@@ -239,46 +248,7 @@ export class BaseRegles {
 
         return null;
     }
-
-    // Jouer un coup
-    lancerCoup(x1: number, y1: number, x2: number, y2: number): void {
-        if (!this.propriete(x1, y1)) {
-            console.log("Cette pièce n'est pas à vous!");
-            return;
-        }
-
-        if (!this.caseVide(x2, y2)) {
-            console.log("Case occupée!");
-            return;
-        }
-
-        const resultat = this.futurCapture(x1, y1, x2, y2);
-
-        if (!resultat) {
-            console.log("Mouvement invalide!");
-            return;
-        }
-
-        // Si c'est un déplacement simple - changer de joueur
-        if (resultat === "simple") {
-            this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
-        }
-
-        // Si c'est une capture → vérifier s’il reste des captures possibles
-        if (resultat === "capture") {
-            const piece = this.plateau.getPiece(x2, y2);
-            if (piece && !this.capturerEnChaine(x2, y2, piece)) {
-                // aucune capture possible - on change de joueur
-                this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
-            } else {
-                // sinon - le même joueur continue
-                console.log("Continuez les captures!");
-            }
-        }
-
-        this.afficherPiece();
-    }
-
+    
     // Vérifier s’il reste des captures possibles
     private capturerEnChaine(x: number, y: number, piece: Piece): boolean {
         const directions = [
@@ -298,5 +268,59 @@ export class BaseRegles {
 
         // aucune capture possible
         return false;
+    }
+
+    private captureForce(): boolean {
+        // Parcourir toutes les cases du plateau
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                const piece = this.plateau.getPiece(x, y);
+                if (piece && piece.joueur === this.joueurCourant) {
+                    if (this.capturerEnChaine(x, y, piece)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Jouer un coup
+    lancerCoup(x1: number, y1: number, x2: number, y2: number): boolean {
+        // Vérifier si une capture est obligatoire
+        if (this.captureForce()) {
+            const piece = this.plateau.getPiece(x1, y1);
+            if (!piece || !this.capturerEnChaine(x1, y1, piece)) {
+                return false;
+            }
+        }
+
+        if (!this.propriete(x1, y1)) {
+            return false;
+        }
+
+        if (!this.caseVide(x2, y2)) {
+            return false;
+        }
+
+        const resultat = this.futurCapture(x1, y1, x2, y2);
+
+        if (!resultat) {
+            return false;
+        }
+
+        // Changer le joueur si nécessaire
+        if (resultat === "simple") {
+            this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        } else if (resultat === "capture") {
+            const piece = this.plateau.getPiece(x2, y2);
+            if (piece && !this.capturerEnChaine(x2, y2, piece)) {
+                this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+            }
+        }
+
+        this.afficherPiece();
+        return true;
     }
 }

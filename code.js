@@ -1,8 +1,8 @@
 "use strict";
+// Projet: Création du jeu de Dames
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseRegles = exports.Plateau = exports.Piece = void 0;
-// Projet: Création du jeu de Dames
-// 1. Création de classe: pièces
+// CLASSE : Pièce
 var Piece = /** @class */ (function () {
     function Piece(joueur, estDame) {
         if (estDame === void 0) { estDame = false; }
@@ -12,9 +12,11 @@ var Piece = /** @class */ (function () {
     // Obtenir une représentation textuelle
     Piece.prototype.affichage = function () {
         if (this.estDame) {
-            return this.joueur.toUpperCase(); // R ou B
+            return this.joueur.toUpperCase(); // R ou N (dame)
         }
-        return this.joueur.toLowerCase(); // r ou b
+        else {
+            return this.joueur.toLowerCase(); // r ou n (pion)
+        }
     };
     return Piece;
 }());
@@ -59,7 +61,12 @@ var Plateau = /** @class */ (function () {
             var ligne = i + " ";
             for (var j = 0; j < this.taille; j++) {
                 var casePlateau = this.grille[i][j];
-                ligne += (casePlateau ? casePlateau.affichage() : ".") + " ";
+                if (casePlateau) {
+                    ligne += casePlateau.affichage() + " ";
+                }
+                else {
+                    ligne += ". ";
+                }
             }
             console.log(ligne);
         }
@@ -70,9 +77,12 @@ var Plateau = /** @class */ (function () {
     };
     // Obtenir une pièce
     Plateau.prototype.getPiece = function (x, y) {
-        if (!this.estValide(x, y))
+        if (!this.estValide(x, y)) {
             return null;
-        return this.grille[x][y];
+        }
+        else {
+            return this.grille[x][y];
+        }
     };
     // Déplacer une pièce
     Plateau.prototype.deplacerPiece = function (x1, y1, x2, y2) {
@@ -80,8 +90,9 @@ var Plateau = /** @class */ (function () {
             return false;
         }
         var piece = this.grille[x1][y1];
-        if (!piece)
+        if (!piece) {
             return false;
+        }
         this.grille[x2][y2] = piece;
         this.grille[x1][y1] = null;
         // Promotion si arrivée au bout
@@ -90,7 +101,7 @@ var Plateau = /** @class */ (function () {
         }
         return true;
     };
-    // Supprime une pièce à la position donnée
+    // Supprimer une pièce à la position donnée
     Plateau.prototype.supprimerPiece = function (x, y) {
         if (this.estValide(x, y)) {
             this.grille[x][y] = null;
@@ -99,98 +110,180 @@ var Plateau = /** @class */ (function () {
     return Plateau;
 }());
 exports.Plateau = Plateau;
+// CLASSE : Règles de base
 var BaseRegles = /** @class */ (function () {
     function BaseRegles() {
-        // lance le plateau et commence avec le jouer rouge
+        // Initialiser le plateau et commence avec le joueur rouge
         this.plateau = new Plateau();
-        // le rouge commence
         this.joueurCourant = "R";
     }
-    // Retourne la valeure absolue d'un nombre
+    // Accès au plateau
+    BaseRegles.prototype.getPlateau = function () {
+        return this.plateau;
+    };
+    // Accès au jouer courant
+    BaseRegles.prototype.getJoueurCourant = function () {
+        return this.joueurCourant;
+    };
+    // Retourner la valeur absolue d'un nombre
     BaseRegles.prototype.absolute = function (x) {
-        return x >= 0 ? x : -x;
+        if (x >= 0) {
+            return x;
+        }
+        else {
+            return -x;
+        }
     };
     // Afficher le plateau avec le joueur courant
     BaseRegles.prototype.afficherPiece = function () {
         console.log("Jouer courant : ".concat(this.joueurCourant));
         this.plateau.afficher();
     };
-    // Vérifie que la pièce appartient au joueur courant
+    // Vérifier que la pièce appartient au joueur courant
     BaseRegles.prototype.propriete = function (x, y) {
         var piece = this.plateau.getPiece(x, y);
-        return piece !== null && piece.joueur === this.joueurCourant;
+        if (piece !== null && piece.joueur === this.joueurCourant) {
+            return true;
+        }
+        else {
+            return false;
+        }
     };
-    // Vérifie que la case est vide
+    // Vérifier que la case est vide
     BaseRegles.prototype.caseVide = function (x, y) {
-        return this.plateau.estValide(x, y) && this.plateau.getPiece(x, y) === null;
+        if (this.plateau.estValide(x, y) && this.plateau.getPiece(x, y) === null) {
+            return true;
+        }
+        else {
+            return false;
+        }
     };
-    // Vérifie un mouvement diagonal
+    // Vérifier un mouvement diagonal simple
     BaseRegles.prototype.diagonalSimple = function (x1, y1, x2, y2, piece) {
         var diagonalx = x2 - x1;
         var diagonaly = y2 - y1;
-        // Comme math(abs) n'est pas possible... cette ligne est donc la pour s'assurer que le déplacement change uniquement que d'une case
-        if (this.absolute(diagonalx) !== 1 || this.absolute(diagonaly) !== 1)
+        // Déplacement doit être exactement d'une case en diagonale
+        if (this.absolute(diagonalx) !== 1 || this.absolute(diagonaly) !== 1) {
             return false;
+        }
+        // Vérifie la direction du pion si ce n’est pas une dame
         if (!piece.estDame) {
-            if (piece.joueur === "R" && diagonalx !== -1)
+            if (piece.joueur === "R" && diagonalx !== -1) {
                 return false;
-            if (piece.joueur === "N" && diagonalx !== 1)
+            }
+            if (piece.joueur === "N" && diagonalx !== 1) {
                 return false;
+            }
         }
         return true;
     };
-    // Vérifie si un déplacement capture
+    // Vérifier si un mouvement est une capture
     BaseRegles.prototype.capture = function (x1, y1, x2, y2, piece) {
         var diagonalx = x2 - x1;
         var diagonaly = y2 - y1;
-        if (this.absolute(diagonalx) !== 2 || this.absolute(diagonaly) !== 2)
+        if (this.absolute(diagonalx) !== 2 || this.absolute(diagonaly) !== 2) {
             return false;
+        }
         var xm = x1 + diagonalx / 2;
         var ym = y1 + diagonaly / 2;
         var pieceCoince = this.plateau.getPiece(xm, ym);
-        if (!pieceCoince)
+        if (!pieceCoince) {
             return false;
-        if (pieceCoince.joueur === this.joueurCourant)
+        }
+        if (pieceCoince.joueur === this.joueurCourant) {
             return false;
+        }
         return this.caseVide(x2, y2);
     };
-    // Déplace la pièce et effectue une capture
+    // Déplacer la pièce et effectuer un mouvement (simple ou capture)
     BaseRegles.prototype.futurCapture = function (x1, y1, x2, y2) {
         var piece = this.plateau.getPiece(x1, y1);
-        if (!piece)
-            return false;
+        if (!piece) {
+            return null;
+        }
+        // Déplacement simple
         if (this.diagonalSimple(x1, y1, x2, y2, piece)) {
             this.plateau.deplacerPiece(x1, y1, x2, y2);
-            return true;
+            return "simple";
         }
+        // Déplacement avec capture
         if (this.capture(x1, y1, x2, y2, piece)) {
             var xm = x1 + (x2 - x1) / 2;
             var ym = y1 + (y2 - y1) / 2;
-            // retirer la pièce capturée
             this.plateau.supprimerPiece(xm, ym);
             this.plateau.deplacerPiece(x1, y1, x2, y2);
-            return true;
+            // Après une capture, vérifier si une autre capture est possible
+            if (this.capturerEnChaine(x2, y2, piece)) {
+                console.log("Vous pouvez continuez les captures!");
+            }
+            return "capture";
+        }
+        return null;
+    };
+    // Vérifier s’il reste des captures possibles
+    BaseRegles.prototype.capturerEnChaine = function (x, y, piece) {
+        var directions = [
+            { dx: 2, dy: 2 },
+            { dx: 2, dy: -2 },
+            { dx: -2, dy: 2 },
+            { dx: -2, dy: -2 }
+        ];
+        for (var _i = 0, directions_1 = directions; _i < directions_1.length; _i++) {
+            var dir = directions_1[_i];
+            var nx = x + dir.dx;
+            var ny = y + dir.dy;
+            if (this.capture(x, y, nx, ny, piece)) {
+                return true;
+            }
+        }
+        // aucune capture possible
+        return false;
+    };
+    BaseRegles.prototype.captureForce = function () {
+        // Parcourir toutes les cases du plateau
+        for (var x = 0; x < 8; x++) {
+            for (var y = 0; y < 8; y++) {
+                var piece = this.plateau.getPiece(x, y);
+                if (piece && piece.joueur === this.joueurCourant) {
+                    if (this.capturerEnChaine(x, y, piece)) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     };
     // Jouer un coup
     BaseRegles.prototype.lancerCoup = function (x1, y1, x2, y2) {
+        // Vérifier si une capture est obligatoire
+        if (this.captureForce()) {
+            var piece = this.plateau.getPiece(x1, y1);
+            if (!piece || !this.capturerEnChaine(x1, y1, piece)) {
+                return false;
+            }
+        }
         if (!this.propriete(x1, y1)) {
-            console.log("Cette pièce n'est pas à vous!");
-            return;
+            return false;
         }
         if (!this.caseVide(x2, y2)) {
-            console.log("Case occupée!");
-            return;
+            return false;
         }
-        var valide = this.futurCapture(x1, y1, x2, y2);
-        if (!valide) {
-            console.log("Mouvement invalide!");
-            return;
+        var resultat = this.futurCapture(x1, y1, x2, y2);
+        if (!resultat) {
+            return false;
         }
-        // Changer de joueur
-        this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        // Changer le joueur si nécessaire
+        if (resultat === "simple") {
+            this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+        }
+        else if (resultat === "capture") {
+            var piece = this.plateau.getPiece(x2, y2);
+            if (piece && !this.capturerEnChaine(x2, y2, piece)) {
+                this.joueurCourant = this.joueurCourant === "R" ? "N" : "R";
+            }
+        }
         this.afficherPiece();
+        return true;
     };
     return BaseRegles;
 }());

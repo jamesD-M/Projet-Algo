@@ -105,7 +105,7 @@ Classe Deplacement :
         Fin pour
         Retourner faux
 
-    - Fonction captureObligatoire() :
+    - Fonction captureForcée() :
     Pour chaque ligne x de 0 à 7 :
         Pour chaque colonne y de 0 à 7 :
             piece = plateau.getPiece(x, y)
