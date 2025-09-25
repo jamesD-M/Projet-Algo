@@ -374,4 +374,58 @@ function lancerPartie() {
     }
 }
 
-lancerPartie();
+type Move = [number, number, number, number, string];
+
+// DÉMONSTRATION AUTOMATIQUE
+function demoPartie() {
+    // ✅ Toutes les coordonnées sont des nombres
+    const moves: Move[] = [
+        [5, 0, 4, 1, "Le joueur Rouge avance"],
+        [2, 1, 3, 0, "Le joueur Noir avance"],
+        [5, 2, 4, 3, "Le joueur Rouge avance"],
+        [2, 3, 3, 4, "Le joueur Noir avance"],
+        [4, 3, 2, 5, "Le joueur Rouge capture un pion Noir"],
+        [1, 4, 2, 3, "Le joueur Noir avance"],
+        [2, 5, 0, 7, "Le joueur Rouge capture et devient Dame"],
+    ];
+
+    const jeu = new BaseRegles();
+    const victoire = new Victoire(jeu.getPlateau());
+
+    console.log("=== Démonstration automatique du jeu de dames ===\n");
+
+    for (let [x1, y1, x2, y2, desc] of moves) {
+        // Conversion explicite pour TypeScript
+        const x1n = Number(x1);
+        const y1n = Number(y1);
+        const x2n = Number(x2);
+        const y2n = Number(y2);
+
+        console.log(`Joueur actuel : ${jeu.getJoueurCourant()}`);
+        jeu.afficherPiece();
+        console.log(`Action prévue : ${desc}`);
+        console.log(`Tentative de déplacement : (${x1n},${y1n}) → (${x2n},${y2n})`);
+
+        const valide = jeu.lancerCoup(x1n, y1n, x2n, y2n);
+
+        if (!valide) {
+            console.log("❌ Coup rejeté par les règles\n");
+        } else {
+            console.log("✅ Coup accepté\n");
+        }
+
+        const resultat = victoire.victoireCheck();
+        if (resultat) {
+            console.log("=== Partie terminée ===");
+            jeu.afficherPiece();
+            console.log(resultat);
+            return;
+        }
+
+        console.log("...\n");
+    }
+
+    console.log("Fin démo");
+}
+
+demoPartie();
